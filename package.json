@@ -1,0 +1,31 @@
+{
+  "name": "vitter-sample",
+  "version": "1.0.0",
+  "description": "An implementation of J. S. Vitter's Method D for sequential random sampling.",
+  "main": "dist/index.js",
+  "files": ["./dist/**/*"],
+  "scripts": {
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gliese1337/vitter-sample.git"
+  },
+  "keywords": [
+    "vitter",
+    "random",
+    "sample",
+    "sampling",
+    "sequential"
+  ],
+  "author": "Logan R. Kearsley",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gliese1337/vitter-sample/issues"
+  },
+  "homepage": "https://github.com/gliese1337/vitter-sample#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^3.6.3"
+  }
+}
