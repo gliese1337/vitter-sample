@@ -1,9 +1,11 @@
 {
   "name": "vitter-sample",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An implementation of J. S. Vitter's Method D for sequential random sampling.",
   "main": "dist/index.js",
-  "files": ["./dist/**/*"],
+  "files": [
+    "./dist/**/*"
+  ],
   "scripts": {
     "prepublish": "tsc"
   },
