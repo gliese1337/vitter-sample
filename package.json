@@ -7,7 +7,7 @@
     "./dist/**/*"
   ],
   "scripts": {
-    "prepublish": "tsc"
+    "prepare": "tsc"
   },
   "repository": {
     "type": "git",
