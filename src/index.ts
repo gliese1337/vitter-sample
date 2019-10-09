@@ -2,7 +2,7 @@
 
 const negalphainv = -13;
 export function * skip(k: number, N: number) {
-  let qu1 = N - k + 1; 
+  let qu1 = N - k + 1;
   let S = 0; 
   let threshold = -negalphainv*k;
  
@@ -12,6 +12,7 @@ export function * skip(k: number, N: number) {
   let X = 0;
 
   while (k > 1 && threshold < N) {
+    console.log(`calculating skip for k = ${ k } and N = ${ N } in Method D`);
     const kmin1inv = 1/(k - 1);
  
     for (;;) {
@@ -72,6 +73,7 @@ export function * skip(k: number, N: number) {
     let top = N - k;
    
     while (k >= 2) {
+
       const V = Math.random();
       let quot = top/N;
 
@@ -84,10 +86,11 @@ export function * skip(k: number, N: number) {
       }
 
       yield S;
+      N--;
       k--;
     }
-   
-    yield Math.floor(N * Math.random());
+
+    yield Math.floor(N * Math.random());;
   } else {
     yield Math.floor(N * Vprime);
   }
@@ -111,5 +114,60 @@ export function * sampleFrom<T>(deck: Iterable<T>, k: number, N: number = (deck 
   for (const S of skip(k, N)) {
     for (let i = 0; i < S; i++) g.next();
     yield g.next().value as T;
+  }
+}
+
+export function * mask(k: number, N: number) {
+  let i = 0;
+  for (const s of skip(k, N)) {
+    let j = 0;
+    for (;j < s; j++) {
+      yield false;
+    }
+    yield true;
+    i += j+1;
+  }
+
+  for (;i < N; i++) yield false;
+}
+
+export function maskWith<T>(deck: Iterable<T>, k: number, N: number): Generator<[T, boolean]>;
+export function maskWith<T>(deck: Iterable<T> & { size: number }, k: number, N?: number): Generator<[T, boolean]>;
+export function maskWith<T>(deck: Iterable<T> & { length: number }, k: number, N?: number): Generator<[T, boolean]>;
+export function * maskWith<T>(deck: Iterable<T>, k: number, N: number = (deck as any).size || (deck as any).length) {
+  if (!N || k > N) throw new Error("Invalid arguments");
+  const g = deck[Symbol.iterator]();
+  for (const m of mask(k, N)) {
+    yield [ g.next().value as T, m ];
+  }
+}
+
+export function * partition(k1: number, ...ks: number[]): Generator<[number, number]> {
+  if (ks.length === 0) {
+    for (let i = 0; i < k1; i++) yield [i, 0];
+  } else {
+    let N = k1;
+    const masks = ks.map(k => {
+      N += k;
+      return mask(k, N);
+    });
+
+    const l = ks.length;
+    outer: for (let i = 0; i < N; i++) {
+      for (let k = l - 1; k >= 0; k--) {
+        if (masks[k].next().value) {
+          yield [i, k + 1];
+          continue outer;
+        }
+      }
+      yield [i, 0];
+    }
+  }
+}
+
+export function * partitionWith<T>(deck: Iterable<T>, k1: number, k2: number, ...ks: number[]): Generator<[T, number]> {
+  const g = deck[Symbol.iterator]();
+  for (const [, b] of partition(k1, k2, ...ks)) {
+    yield [ g.next().value(), b ];
   }
 }
