@@ -1,6 +1,6 @@
 {
   "name": "vitter-sample",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "An implementation of J. S. Vitter's Method D for sequential random sampling.",
   "main": "dist/index.js",
   "files": [
@@ -8,8 +8,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && mocha --recursive",
-    "prepare": "npm run test"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -30,8 +29,6 @@
   "homepage": "https://github.com/gliese1337/vitter-sample#readme",
   "dependencies": {},
   "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^6.2.1",
     "typescript": "^3.6.3"
   }
 }

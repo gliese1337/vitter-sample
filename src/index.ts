@@ -8,21 +8,18 @@ export function * skip(k: number, N: number) {
  
   let kinv = 1/k;
   let Vprime = Math.pow(Math.random(), kinv);
- 
-  let X = 0;
 
   while (k > 1 && threshold < N) {
-    console.log(`calculating skip for k = ${ k } and N = ${ N } in Method D`);
+    // calculating skip for k and N with Method D
     const kmin1inv = 1/(k - 1);
  
     for (;;) {
+      let X!: number;
       for (;;) {
         X = N * (1 - Vprime);
         S = Math.floor(X);
  
-        if (S < qu1) {
-          break;
-        }
+        if (S < qu1) break;
  
         Vprime = Math.pow(Math.random(), kinv);
       }
@@ -30,9 +27,7 @@ export function * skip(k: number, N: number) {
       const y1 = Math.pow(Math.random() * N / qu1, kmin1inv);
       Vprime = y1 * (1 - X / N) * (qu1 / (qu1 - S));
        
-      if (Vprime <= 1) {
-        break;
-      }
+      if (Vprime <= 1) break;
        
       let y2 = 1; 
       let top = N - 1;
@@ -73,7 +68,6 @@ export function * skip(k: number, N: number) {
     let top = N - k;
    
     while (k >= 2) {
-
       const V = Math.random();
       let quot = top/N;
 
@@ -100,8 +94,7 @@ export function * sample(k: number, N: number) {
   let a = 0;
   for (const S of skip(k, N)) {
     a += S;
-    yield a;
-    a++;
+    yield a++;
   }
 }
 
@@ -120,15 +113,12 @@ export function * sampleFrom<T>(deck: Iterable<T>, k: number, N: number = (deck 
 export function * mask(k: number, N: number) {
   let i = 0;
   for (const s of skip(k, N)) {
-    let j = 0;
-    for (;j < s; j++) {
-      yield false;
-    }
+    for (let j = 0; j < s; j++) yield false;
     yield true;
-    i += j+1;
+    i += s + 1;
   }
 
-  for (;i < N; i++) yield false;
+  while (i++ < N) yield false;
 }
 
 export function maskWith<T>(deck: Iterable<T>, k: number, N: number): Generator<[T, boolean]>;
@@ -137,37 +127,41 @@ export function maskWith<T>(deck: Iterable<T> & { length: number }, k: number, N
 export function * maskWith<T>(deck: Iterable<T>, k: number, N: number = (deck as any).size || (deck as any).length) {
   if (!N || k > N) throw new Error("Invalid arguments");
   const g = deck[Symbol.iterator]();
-  for (const m of mask(k, N)) {
-    yield [ g.next().value as T, m ];
-  }
+  for (const m of mask(k, N)) yield [ g.next().value as T, m ];
 }
 
-export function * partition(k1: number, ...ks: number[]): Generator<[number, number]> {
-  if (ks.length === 0) {
-    for (let i = 0; i < k1; i++) yield [i, 0];
-  } else {
-    let N = k1;
-    const masks = ks.map(k => {
-      N += k;
-      return mask(k, N);
-    });
+export function * partition(k1?: number, ...ks: number[]): Generator<number> {
+  if (typeof k1 !== 'number') return;
+  
+  const l = ks.length - 1;
+  if (l < 0) {
+    for (let i = 0; i < k1; i++) yield 0;
+    return;
+  }
 
-    const l = ks.length;
-    outer: for (let i = 0; i < N; i++) {
-      for (let k = l - 1; k >= 0; k--) {
-        if (masks[k].next().value) {
-          yield [i, k + 1];
-          continue outer;
-        }
-      }
-      yield [i, 0];
+  // The last mask selects k_l elements from an N-sized deck.
+  // The second-to-last mask selects k_l-1 elements from the
+  // remaining N-k_l-sized deck; and so on.
+  let N = k1;
+  const masks = ks.map(k => mask(k, N += k));
+
+  outer: for (let i = 0; i < N; i++) {
+    for (let k = l; k >= 0; k--) {
+      // If this one didn't match, check the next one.
+      if (!masks[k].next().value) continue;
+      // If this one did match, yield, and start over
+      // checking all masks for the next element.
+      yield k + 1;
+      continue outer;
     }
+    // If none of the masks matched, this element
+    // must fit in the final k_1-sized partition.
+    yield 0;
   }
 }
 
-export function * partitionWith<T>(deck: Iterable<T>, k1: number, k2: number, ...ks: number[]): Generator<[T, number]> {
+export function * partitionWith<T>(deck: Iterable<T>, k1?: number, ...ks: number[]): Generator<[T, number]> {
+  if (typeof k1 !== 'number') return;
   const g = deck[Symbol.iterator]();
-  for (const [, b] of partition(k1, k2, ...ks)) {
-    yield [ g.next().value(), b ];
-  }
+  for (const b of partition(k1, ...ks)) yield [ g.next().value, b ];
 }
